@@ -87,7 +87,7 @@
 
 			_this.state = {
 				value: 999,
-				format: 'd'
+				format: '(d dd)'
 			};
 			return _this;
 		}
@@ -140,7 +140,7 @@
 					_react2.default.createElement(
 						'div',
 						{ style: ctrlStyle },
-						_react2.default.createElement(_RunningNumber2.default, { rnStyle: 'my-running-number', value: this.state.value, format: this.state.format })
+						_react2.default.createElement(_RunningNumber2.default, { rnStyle: 'my-running-number odometer odometer-theme-default', value: this.state.value, format: this.state.format })
 					)
 				);
 			}
@@ -19794,25 +19794,27 @@
 			value: function componentDidMount() {
 				if (Odometer) {
 					this.odometer = this.getNewOdometer();
-
 					this.rAF(this.updateValue.bind(this));
 				}
 			}
 		}, {
 			key: 'getNewOdometer',
-			value: function getNewOdometer() {
+			value: function getNewOdometer(format) {
 				return new Odometer({
 					el: _reactDom2.default.findDOMNode(this),
 					value: 0,
 					theme: this.props.theme,
-					format: this.props.format,
+					format: format || this.props.format,
 					duration: this.props.duration
 				});
 			}
 		}, {
 			key: 'rAF',
 			value: function rAF(callback) {
-				return window.requestAnimationFrame(callback) || window.setTimeout(callback, 1);
+				var onNextFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
+					window.setTimeout(callback, 1000 / 60);
+				};
+				return onNextFrame(callback);
 			}
 		}, {
 			key: 'updateValue',
@@ -19824,6 +19826,16 @@
 			value: function componentDidUpdate() {
 				if (this.odometer) {
 					this.rAF(this.updateValue.bind(this));
+				}
+			}
+		}, {
+			key: 'componentWillReceiveProps',
+			value: function componentWillReceiveProps(nextProps) {
+				if (this.props.format !== nextProps.format) {
+					//Format Hack. 请参考odometer源码理解下面代码
+					this.odometer.options.format = nextProps.format;
+					this.odometer.resetFormat();
+					this.odometer.render();
 				}
 			}
 		}, {
@@ -19852,7 +19864,7 @@
 		format: 'd',
 		theme: 'default',
 		rnStyle: '',
-		duration: 10000
+		duration: 1000
 	};
 
 /***/ },
